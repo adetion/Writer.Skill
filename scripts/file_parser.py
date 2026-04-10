@@ -12,18 +12,18 @@ class FileParser:
         os.makedirs(output_dir, exist_ok=True)
     
     def _get_file_type(self, file_path: str) -> str:
-        """获取文件类型"""
+        """Get file type"""
         ext = os.path.splitext(file_path)[1].lower()
         if ext in self.SUPPORTED_FORMATS:
             return ext.lstrip(".")
-        raise ValueError(f"不支持的文件格式: {ext}，支持格式: {','.join(self.SUPPORTED_FORMATS)}")
+        raise ValueError(f"Unsupported file format: {ext}, supported formats: {','.join(self.SUPPORTED_FORMATS)}")
     
     def parse_txt(self, file_path: str) -> List[Dict[str, Any]]:
-        """解析txt/md文件"""
+        """Parse txt/md file"""
         with open(file_path, 'r', encoding='utf-8') as f:
             content = f.read()
         
-        # 按标题拆分段落
+        # Split into sections by headings
         entries = []
         sections = re.split(r'\n#{1,6}\s+', content)
         if not sections[0].strip():
@@ -31,20 +31,20 @@ class FileParser:
         
         for i, section in enumerate(sections):
             lines = section.split("\n", 1)
-            title = lines[0].strip() if len(lines) > 0 else f"条目_{i+1}"
+            title = lines[0].strip() if len(lines) > 0 else f"Entry_{i+1}"
             content = lines[1].strip() if len(lines) > 1 else section.strip()
             
             if not content:
                 continue
             
-            # 自动提取标签
+            # Auto-extract tags
             tags = []
-            if "人物" in title or "角色" in title:
-                tags.append("人物")
-            if "世界观" in title or "设定" in title:
-                tags.append("世界观")
-            if "剧情" in title or "大纲" in title:
-                tags.append("剧情")
+            if "Character" in title or "Role" in title:
+                tags.append("Character")
+            if "Worldbuilding" in title or "Setting" in title:
+                tags.append("Worldbuilding")
+            if "Plot" in title or "Outline" in title:
+                tags.append("Plot")
             
             entries.append({
                 "id": f"auto_{os.path.basename(file_path).split('.')[0]}_{i+1}",
@@ -56,22 +56,22 @@ class FileParser:
         return entries
     
     def parse_docx(self, file_path: str) -> List[Dict[str, Any]]:
-        """解析docx文件"""
+        """Parse docx file"""
         try:
             from docx import Document
         except ImportError:
-            raise RuntimeError("缺少docx解析依赖，请安装: pip install python-docx")
+            raise RuntimeError("Missing docx parsing dependency, please install: pip install python-docx")
         
         doc = Document(file_path)
         content = "\n".join([para.text for para in doc.paragraphs if para.text.strip()])
         return self.parse_txt_content(content, os.path.basename(file_path))
     
     def parse_pdf(self, file_path: str) -> List[Dict[str, Any]]:
-        """解析pdf文件"""
+        """Parse pdf file"""
         try:
             import PyPDF2
         except ImportError:
-            raise RuntimeError("缺少pdf解析依赖，请安装: pip install pypdf2")
+            raise RuntimeError("Missing pdf parsing dependency, please install: pip install pypdf2")
         
         content = ""
         with open(file_path, 'rb') as f:
@@ -81,11 +81,11 @@ class FileParser:
         return self.parse_txt_content(content, os.path.basename(file_path))
     
     def parse_xlsx(self, file_path: str) -> List[Dict[str, Any]]:
-        """解析xlsx文件"""
+        """Parse xlsx file"""
         try:
             import openpyxl
         except ImportError:
-            raise RuntimeError("缺少excel解析依赖，请安装: pip install openpyxl")
+            raise RuntimeError("Missing excel parsing dependency, please install: pip install openpyxl")
         
         wb = openpyxl.load_workbook(file_path)
         entries = []
@@ -99,18 +99,18 @@ class FileParser:
             if not data:
                 continue
             
-            # 第一行为表头，后续为内容
+            # First row as header, subsequent rows as content
             headers = data[0]
             for i, row in enumerate(data[1:], start=1):
                 row_dict = dict(zip(headers, row))
                 content = "\n".join([f"{k}: {v}" for k, v in row_dict.items() if v.strip()])
-                title = row_dict.get("名称", row_dict.get("title", f"{sheet_name}_条目_{i}"))
+                title = row_dict.get("Name", row_dict.get("title", f"{sheet_name}_Entry_{i}"))
                 
                 tags = [sheet_name]
-                if "人物" in sheet_name:
-                    tags.append("人物")
-                if "设定" in sheet_name:
-                    tags.append("世界观")
+                if "Character" in sheet_name:
+                    tags.append("Character")
+                if "Setting" in sheet_name:
+                    tags.append("Worldbuilding")
                 
                 entries.append({
                     "id": f"auto_xlsx_{sheet_name}_{i}",
@@ -122,24 +122,24 @@ class FileParser:
         return entries
     
     def parse_txt_content(self, content: str, filename: str) -> List[Dict[str, Any]]:
-        """通用文本内容解析"""
+        """General text content parsing"""
         entries = []
-        # 按空行分段
+        # Split by blank lines
         paragraphs = [p.strip() for p in re.split(r'\n\s*\n', content) if p.strip()]
         
         for i, para in enumerate(paragraphs):
-            # 提取第一句作为标题
+            # Extract first sentence as title
             lines = para.split("。", 1) if "。" in para else para.split("\n", 1)
-            title = lines[0].strip()[:50] if len(lines) > 0 else f"{filename.split('.')[0]}_条目_{i+1}"
+            title = lines[0].strip()[:50] if len(lines) > 0 else f"{filename.split('.')[0]}_Entry_{i+1}"
             content = para.strip()
             
             tags = []
-            if "人物" in title or "姓名" in content:
-                tags.append("人物")
-            if "境界" in content or "世界" in content or "规则" in content:
-                tags.append("世界观")
-            if "剧情" in title or "情节" in content:
-                tags.append("剧情")
+            if "Character" in title or "Name" in content:
+                tags.append("Character")
+            if "Realm" in content or "World" in content or "Rule" in content:
+                tags.append("Worldbuilding")
+            if "Plot" in title or "Story" in content:
+                tags.append("Plot")
             
             entries.append({
                 "id": f"auto_{filename.split('.')[0]}_{i+1}",
@@ -151,7 +151,7 @@ class FileParser:
         return entries
     
     def parse_file(self, file_path: str, output_yaml: str = None) -> str:
-        """解析文件并保存为YAML格式知识库"""
+        """Parse file and save as YAML format knowledge base"""
         file_type = self._get_file_type(file_path)
         parse_func = getattr(self, f"parse_{file_type}")
         entries = parse_func(file_path)
@@ -167,9 +167,9 @@ class FileParser:
 if __name__ == "__main__":
     import sys
     if len(sys.argv) != 2:
-        print("用法: python file_parser.py <待解析文件路径>")
+        print("Usage: python file_parser.py <file_path_to_parse>")
         sys.exit(1)
     
     parser = FileParser(output_dir="./")
     output_path, count = parser.parse_file(sys.argv[1])
-    print(f"✅ 解析完成，共生成{count}条知识库条目，保存到: {output_path}")
+    print(f"✅ Parsing completed, generated {count} knowledge base entries, saved to: {output_path}")
