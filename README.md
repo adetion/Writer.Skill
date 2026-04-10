@@ -5,6 +5,9 @@ description: Zero-token-overflow 400-error guaranteed long-form text/novel creat
 ---
 ```
 
+# 【Please respect the author's hard work. Feel free to tip~~~ For the Chinese version, please visit https://Gitee.com/adetion】
+
+
 # Writer Skill
 
 ## Overview
