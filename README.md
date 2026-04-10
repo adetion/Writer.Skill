@@ -45,13 +45,13 @@ Supported file formats:
 | .txt/.md | Plain text/Markdown document, automatically split by headings/blank lines |
 
 ## Chapter Generation Rules (Stepwise Concatenation, Short Single Outputs)
-### 3.1 Chapter Splitting Generation
+### Chapter Splitting Generation
 1.  A single chapter of 8000 words is split into 4–8 scene blocks (1000–2000 words each), generated block by block.
 2.  Each generated scene block is immediately written to an external file; the complete chapter is not returned to the conversation.
 3.  When generating the next scene block, only the 1–2 most recently generated blocks are read as context (avoiding loading the entire chapter history), while retaining necessary character/plot state.
 4.  Coherence between scene blocks is automatically guaranteed by the skill; seamless concatenation occurs when writing to the file.
 
-### 3.2 Single API Call Control
+### Single API Call Control
 1.  Before each call, automatically count tokens of the current input (system instructions + retrieved knowledge base fragments + recent scene blocks + generation prompt). If the count exceeds the safety threshold (default 24k), automatic compression is applied (reduce number of historical blocks, shorten knowledge base fragments).
 2.  Single output is limited to no more than 2k tokens (approximately 1500–2000 words). This can be increased based on model capability, but total tokens must not exceed 80% of the model's limit.
 
