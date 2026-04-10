@@ -1,113 +1,115 @@
+```yaml
 ---
 name: writer
-description: 零token超限400错误保证的长篇文本/小说创作助手，支持分块生成、知识库安全检索、状态机持久化、全自动创作流程，支持自动解析Word(docx)/Excel(xlsx)/PDF/TXT/MD格式文件转换为结构化YAML知识库。使用场景：当用户需要创作长篇小说、生成大量文本内容、管理连载写作进度、避免大文本对话导致token超限错误、需要导入多格式文件转换为YAML知识库时激活。
+description: Zero-token-overflow 400-error guaranteed long-form text/novel creation assistant, supporting chunked generation, knowledge base safe retrieval, state machine persistence, fully automated creation workflow, and automatic parsing of Word(docx)/Excel(xlsx)/PDF/TXT/MD files into structured YAML knowledge bases. Activation scenarios: when the user needs to create a long novel, generate large volumes of text, manage serialized writing progress, avoid token overflow errors in large-text conversations, or import multi-format files for conversion into a YAML knowledge base.
 ---
+```
 
-# Writer（写手）技能
+# Writer Skill
 
-## 概述
-本技能专为长篇内容创作设计，核心目标是**零400 token超限错误保证**，所有大文本通过文件交换，对话仅返回状态和进度信息，确保即使每日创作8万字的极端场景下，所有API调用安全可控，用户无需关心底层token限制。
+## Overview
+This skill is specifically designed for long-form content creation, with the core goal of **zero 400 token overflow error guarantee**. All large text exchanges are handled via file swapping; the conversation only returns status and progress information. This ensures that even in extreme scenarios such as producing 80,000 words per day, all API calls remain safe and controllable, and users need not worry about underlying token limits.
 
-## 核心设计原则（零400错误保证）
-1.  任何与LLM的交互，输入token + 输出token严格控制在当前模型限制的80%以内，自动适配模型上下文窗口大小（32k/128k等）
-2.  采用「分片生成、外部存储、渐进式构建」策略，所有大文本不进入对话上下文
-3.  内部使用状态机驱动，每一步仅处理小段内容，避免单次请求超限
-4.  若请求预估会超限，自动降级（压缩上下文、拆分输出、分步执行）并通知用户
+## Core Design Principles (Zero 400 Error Guarantee)
+1.  For any interaction with the LLM, the sum of input tokens and output tokens is strictly controlled within 80% of the current model's limit, automatically adapting to the model's context window size (32k/128k, etc.).
+2.  A strategy of "chunked generation, external storage, incremental construction" is adopted; no large text enters the conversation context.
+3.  Internally driven by a state machine, each step processes only a small piece of content, avoiding per-request overflow.
+4.  If a request is estimated to exceed the limit, automatic degradation (context compression, output splitting, stepwise execution) is performed, and the user is notified.
 
-## 知识库使用规则（安全检索不超限）
-1.  知识库以结构化文件（JSON/YAML）存储在OpenClaw工作区，默认路径为`./novel_knowledge/`，支持向量/关键词索引
-2.  **多格式自动解析**：支持直接导入docx、xlsx、pdf、txt、md格式文件，自动解析转换为结构化YAML知识库条目，无需手动整理格式
-3.  每次生成内容时，仅提取与当前情节最相关的设定片段，拼接后总token不超过8k（可配置）
-4.  知识库条目过大时自动截断或生成摘要后再注入上下文，不加载全量内容
-5.  知识库更新采用增量修改，不重新加载全量数据
+## Knowledge Base Usage Rules (Safe Retrieval Without Overflow)
+1.  The knowledge base is stored as structured files (JSON/YAML) in the OpenClaw workspace, with the default path `./novel_knowledge/`. It supports vector/keyword indexing.
+2.  **Multi-format automatic parsing**: Supports direct import of docx, xlsx, pdf, txt, and md files, automatically parsing and converting them into structured YAML knowledge base entries without manual formatting.
+3.  Each content generation extracts only the most relevant setting fragments for the current plot; the total concatenated token count does not exceed 8k (configurable).
+4.  If a knowledge base entry is too large, it is automatically truncated or an abstract is generated before being injected into the context; full content is never loaded.
+5.  Knowledge base updates are performed incrementally; full data is not reloaded.
 
-> 知识库配置参考：[references/knowledge_config.md](references/knowledge_config.md)
-> 文件解析脚本：[scripts/file_parser.py](scripts/file_parser.py)
-> 依赖安装：运行 `pip install -r requirements.txt` 安装所有解析依赖
+> Knowledge base configuration reference: [references/knowledge_config.md](references/knowledge_config.md)  
+> File parsing script: [scripts/file_parser.py](scripts/file_parser.py)  
+> Dependency installation: Run `pip install -r requirements.txt` to install all parsing dependencies.
 
-### 知识库导入使用方法
-1. **自动导入**：直接上传任意支持格式的文件（docx/xlsx/pdf/txt/md），技能自动触发解析，转换为结构化YAML条目存入知识库
-2. **手动解析**：执行命令 `python scripts/file_parser.py <文件路径>` 可手动解析指定文件
-3. **自动打标签**：解析过程自动识别内容类型，自动添加「人物」「世界观」「剧情」等标签，自动设置优先级
-4. **文件备份**：原始文件自动备份到知识库目录，不会丢失
+### How to Import and Use the Knowledge Base
+1.  **Automatic import**: Directly upload any supported file (docx/xlsx/pdf/txt/md); the skill automatically triggers parsing and converts it into structured YAML entries stored in the knowledge base.
+2.  **Manual parsing**: Execute the command `python scripts/file_parser.py <file_path>` to manually parse a specified file.
+3.  **Automatic tagging**: The parsing process automatically identifies content types, adds tags such as "Character", "Worldbuilding", "Plot", etc., and automatically sets priority levels.
+4.  **File backup**: Original files are automatically backed up in the knowledge base directory without loss.
 
-支持的文件格式：
-| 格式 | 说明 |
-|------|------|
-| .docx | Word文档，自动按段落/标题拆分条目 |
-| .xlsx | Excel表格，自动按行转换为条目，第一行作为表头 |
-| .pdf | PDF文档，自动提取文本拆分条目 |
-| .txt/.md | 纯文本/Markdown文档，自动按标题/空行拆分条目 |
+Supported file formats:
+| Format | Description |
+|--------|-------------|
+| .docx | Word document, automatically split into entries by paragraph/heading |
+| .xlsx | Excel spreadsheet, automatically converts rows into entries; first row treated as header |
+| .pdf | PDF document, automatically extracts text and splits into entries |
+| .txt/.md | Plain text/Markdown document, automatically split by headings/blank lines |
 
-## 章节生成规则（分步拼接，单次输出短小）
-### 3.1 章节拆分生成
-1.  单章8000字拆分为4~8个场景块（每块1000~2000字），逐块生成
-2.  每生成一个场景块立即写入外部文件，不返回完整章节到对话
-3.  下一场景块生成时仅读取最近1~2个已生成块作为上下文，避免加载全章历史，同时保留必要的人物/情节状态
-4.  场景块之间的连贯性由技能自动保证，写入文件时无缝拼接
+## Chapter Generation Rules (Stepwise Concatenation, Short Single Outputs)
+### 3.1 Chapter Splitting Generation
+1.  A single chapter of 8000 words is split into 4–8 scene blocks (1000–2000 words each), generated block by block.
+2.  Each generated scene block is immediately written to an external file; the complete chapter is not returned to the conversation.
+3.  When generating the next scene block, only the 1–2 most recently generated blocks are read as context (avoiding loading the entire chapter history), while retaining necessary character/plot state.
+4.  Coherence between scene blocks is automatically guaranteed by the skill; seamless concatenation occurs when writing to the file.
 
-### 3.2 单次API调用控制
-1.  每次调用前自动统计当前输入（系统指令 + 检索知识库片段 + 最近场景块 + 生成提示）的token数，超过安全阈值（默认24k）时自动压缩（减少历史块数量、缩短知识库片段）
-2.  单次输出限制为不超过2k tokens（约1500~2000字），可根据模型能力上调，但总token不得超过模型限制的80%
+### 3.2 Single API Call Control
+1.  Before each call, automatically count tokens of the current input (system instructions + retrieved knowledge base fragments + recent scene blocks + generation prompt). If the count exceeds the safety threshold (default 24k), automatic compression is applied (reduce number of historical blocks, shorten knowledge base fragments).
+2.  Single output is limited to no more than 2k tokens (approximately 1500–2000 words). This can be increased based on model capability, but total tokens must not exceed 80% of the model's limit.
 
-> 生成脚本：[scripts/generate_chunk.py](scripts/generate_chunk.py)
+> Generation script: [scripts/generate_chunk.py](scripts/generate_chunk.py)
 
-## 对话交互规则（极简消息，无大内容返回）
-1.  所有对话回复仅包含状态、进度、文件路径、少量预览，单条回复不超过500字
-2.  超过500字的内容（大纲、章节正文、检查报告）全部写入外部文件，对话中仅提供文件路径或简短摘要
-3.  收到用户创作命令后立即回复「任务已启动，进度将实时更新」，通过多条短消息逐步反馈进度（每生成一个场景块/一章发送一条短消息）
-4.  支持异步后台运行，完成时发送汇总通知
+## Conversation Interaction Rules (Minimal Messages, No Large Content Returned)
+1.  All conversation replies contain only status, progress, file paths, and a small preview; each single reply does not exceed 500 words.
+2.  Content exceeding 500 words (outlines, chapter text, inspection reports) is entirely written to external files; only the file path or a short summary is provided in the conversation.
+3.  Upon receiving a user creation command, immediately reply with "Task started, progress will be updated in real time." Progress is gradually reported via multiple short messages (one short message per generated scene block/chapter).
+4.  Supports asynchronous background execution; a summary notification is sent upon completion.
 
-## 状态机与持久化规则
-1.  维护`novel_state.json`状态文件，记录：
-    - 当前总进度（已生成章节、场景块数量）
-    - 待生成大纲
-    - 每章/每场景块的文件路径
-    - 知识库检索缓存（最近使用的设定）
-    - 下一步动作（生成大纲、生成下一场景块、合规检查等）
-2.  每次调用技能先读取状态文件决定执行步骤，执行后更新状态再退出
-3.  支持断点续传，对话中断或token限制触发后可从断点继续，不丢失进度
+## State Machine and Persistence Rules
+1.  Maintains a `novel_state.json` state file, recording:
+    - Current total progress (generated chapters, number of scene blocks)
+    - Pending outlines to be generated
+    - File paths for each chapter / each scene block
+    - Knowledge base retrieval cache (recently used settings)
+    - Next action (generate outline, generate next scene block, compliance check, etc.)
+2.  Each skill invocation first reads the state file to determine the execution step; after execution, updates the state before exiting.
+3.  Supports resumption after interruption; if the conversation is interrupted or a token limit is triggered, continuation from the breakpoint is possible without losing progress.
 
-> 状态管理脚本：[scripts/state_manager.py](scripts/state_manager.py)
+> State management script: [scripts/state_manager.py](scripts/state_manager.py)
 
-## 每日创作全流程（全自动无超限风险）
-1.  **生成大纲**：不一次性生成全量大纲，分批次生成1~3章大纲（每章1~3句话），写入大纲文件，每次仅返回进度提示
-2.  **逐章生成**：根据大纲和状态逐章、逐场景块生成，每生成一个块立即写入文件并更新状态，每章完成后执行轻量级自检，自检报告写入文件
-3.  **章节衔接**：生成新章第一个场景块时自动加载上一章最后两个场景块作为上下文，保证情节连贯
-4.  **每日终检**：所有章节生成后，后台异步执行全量合规检查，生成报告文件，最终发送汇总消息：「今日创作完成，共X章，合规检查通过，结果存于[文件路径]」
+## Daily Creation Workflow (Fully Automatic, No Overflow Risk)
+1.  **Generate outline**: Do not generate the full outline at once; generate outlines for 1–3 chapters at a time (1–3 sentences per chapter), write them to an outline file, and return only progress prompts each time.
+2.  **Generate chapter by chapter**: Generate chapter by chapter and scene block by scene block according to the outline and state. After each block is generated, immediately write it to a file and update the state. After each chapter is completed, perform a lightweight self-check; the self-check report is written to a file.
+3.  **Chapter cohesion**: When generating the first scene block of a new chapter, automatically load the last two scene blocks of the previous chapter as context to ensure plot continuity.
+4.  **End-of-day final check**: After all chapters are generated, perform a full compliance check asynchronously in the background, generate a report file, and finally send a summary message: "Today's creation completed. Total X chapters. Compliance check passed. Results stored at [file path]."
 
-## 反馈与修改规则（安全更新）
-1.  用户提出修改某章节时，仅加载该章节文件 + 必要知识库内容，分场景块生成修改后的版本，覆盖原文件并更新状态
-2.  后续章节生成自动识别修改内容，保持情节一致性
-3.  若用户一次性粘贴大量素材，自动提示「素材过大，请分批提供或直接上传文件」，避免单次输入超限
+## Feedback and Modification Rules (Safe Updates)
+1.  When a user requests modification of a certain chapter, load only that chapter's file plus necessary knowledge base content, generate a revised version scene block by scene block, overwrite the original file, and update the state.
+2.  Subsequent chapter generation automatically recognizes the modified content to maintain plot consistency.
+3.  If the user pastes a large amount of material at once, automatically prompt "Material too large; please provide in batches or upload a file directly" to avoid single input overflow.
 
-## 错误处理与降级规则
-1.  若API调用因token超限失败，自动捕获后压缩输入（减少历史、缩短知识库片段）重试，最多重试3次
-2.  重试仍失败则暂停任务，发送错误报告文件并等待用户指令
-3.  所有错误日志写入`./logs/writer_error.log`文件，便于排查
+## Error Handling and Degradation Rules
+1.  If an API call fails due to token overflow, automatically capture the failure, compress the input (reduce history, shorten knowledge base fragments), and retry, up to a maximum of 3 retries.
+2.  If retries still fail, pause the task, send an error report file, and wait for user instructions.
+3.  All error logs are written to the `./logs/writer_error.log` file for troubleshooting.
 
-## 可配置参数
-所有参数可通过[references/config.yaml](references/config.yaml)修改：
-| 参数名 | 说明 | 默认值 |
-|--------|------|--------|
-| max_input_tokens | 单次请求输入token上限（留空自动适配当前模型） | 24k |
-| max_output_tokens | 单次请求输出token上限（留空自动适配当前模型） | 2k |
-| safety_threshold | 总token安全阈值（不超过模型限制的百分比） | 0.8 |
-| context_chunks | 保留最近场景块数量 | 2 |
-| knowledge_chunk_size | 知识库检索片段最大token | 4k |
-| work_dir | 创作内容存储目录 | ./novel_workspace/ |
-| min_chapter_words | 单章最小字数 | 8000 |
-| max_retry_count | token超限失败重试次数 | 3 |
+## Configurable Parameters
+All parameters can be modified via [references/config.yaml](references/config.yaml):
 
-## 资源说明
+| Parameter Name | Description | Default Value |
+|----------------|-------------|----------------|
+| max_input_tokens | Upper limit of input tokens per request (leave empty to auto-adapt to current model) | 24k |
+| max_output_tokens | Upper limit of output tokens per request (leave empty to auto-adapt to current model) | 2k |
+| safety_threshold | Safety threshold for total tokens (percentage not exceeding model limit) | 0.8 |
+| context_chunks | Number of recent scene blocks to retain | 2 |
+| knowledge_chunk_size | Maximum tokens for retrieved knowledge base fragments | 4k |
+| work_dir | Storage directory for created content | ./novel_workspace/ |
+| min_chapter_words | Minimum number of words per chapter | 8000 |
+| max_retry_count | Number of retries after token overflow failure | 3 |
+
+## Resource Description
 ### scripts/
-- `generate_chunk.py`：场景块生成脚本，负责token统计、内容生成、文件写入
-- `state_manager.py`：状态文件读写、断点续传管理
-- `knowledge_retriever.py`：知识库检索、片段提取、摘要生成
-- `validator.py`：token超限检查、内容合规检查
-- `file_parser.py`：多格式文件解析脚本，支持docx/xlsx/pdf/txt/md自动转换为结构化YAML知识库
+- `generate_chunk.py`: Scene block generation script, responsible for token counting, content generation, and file writing.
+- `state_manager.py`: State file reading/writing and breakpoint resume management.
+- `knowledge_retriever.py`: Knowledge base retrieval, fragment extraction, and abstract generation.
+- `validator.py`: Token overflow checking and content compliance checking.
+- `file_parser.py`: Multi-format file parsing script, supports docx/xlsx/pdf/txt/md automatic conversion to structured YAML knowledge base.
 
 ### references/
-- `config.yaml`：技能参数配置文件
-- `knowledge_config.md`：知识库结构、索引配置说明
-- 
+- `config.yaml`: Skill parameter configuration file.
+- `knowledge_config.md`: Knowledge base structure and indexing configuration description.
