@@ -1,0 +1,8 @@
+# Writer 技能依赖包
+# 安装命令: pip install -r requirements.txt
+
+python-docx>=1.1.0    # docx文件解析
+PyPDF2>=3.0.1         # pdf文件解析
+openpyxl>=3.1.2       # excel文件解析
+tiktoken>=0.6.0       # token统计
+pyyaml>=6.0           # YAML文件处理
