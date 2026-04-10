@@ -15,6 +15,9 @@ description: Zero-token-overflow 400-error guaranteed long-form text/novel creat
 ## Overview
 This skill is specifically designed for long-form content creation, with the core goal of **zero 400 token overflow error guarantee**. All large text exchanges are handled via file swapping; the conversation only returns status and progress information. This ensures that even in extreme scenarios such as producing 80,000 words per day, all API calls remain safe and controllable, and users need not worry about underlying token limits.
 
+<img width="1417" height="1034" alt="截屏2026-04-11 00 38 41" src="https://github.com/user-attachments/assets/800ff458-6c59-4ce3-880c-70e7808f05f1" />
+
+
 ## Core Design Principles (Zero 400 Error Guarantee)
 1.  For any interaction with the LLM, the sum of input tokens and output tokens is strictly controlled within 80% of the current model's limit, automatically adapting to the model's context window size (32k/128k, etc.).
 2.  A strategy of "chunked generation, external storage, incremental construction" is adopted; no large text enters the conversation context.
