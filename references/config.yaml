@@ -1,22 +1,22 @@
-# Writer 技能配置文件
-# 所有数值单位为token，可根据使用的模型上下文窗口大小调整
+# Writer Skill Configuration File
+# All numerical values are in tokens, adjustable based on the context window size of the model in use
 
-# 单次API调用配置
-max_input_tokens: 24576 # 输入token上限，默认24k（适配32k模型，占比75%），留空则自动适配当前模型
-max_output_tokens: 2048 # 输出token上限，默认2k（约1500~2000汉字），留空则自动适配当前模型
-safety_threshold: 0.8 # 总token安全阈值，不得超过模型限制的80%
+# Single API Call Configuration
+max_input_tokens: 24576 # Input token upper limit, default 24k (75% of a 32k context model). Leave empty to auto-adapt to current model.
+max_output_tokens: 2048 # Output token upper limit, default 2k (approximately 1500–2000 Chinese characters). Leave empty to auto-adapt to current model.
+safety_threshold: 0.8 # Total token safety threshold, must not exceed 80% of the model's limit
 
-# 上下文配置
-context_chunks: 2 # 生成新内容时保留的最近场景块数量
-knowledge_chunk_size: 4096 # 知识库检索单次最大返回token数
+# Context Configuration
+context_chunks: 2 # Number of recent scene blocks to retain when generating new content
+knowledge_chunk_size: 4096 # Maximum token count returned per knowledge base retrieval
 
-# 路径配置
-work_dir: "./novel_workspace" # 创作内容存储根目录
-knowledge_dir: "./novel_knowledge" # 知识库存储目录
-log_dir: "./logs" # 日志存储目录
-state_file: "./novel_workspace/novel_state.json" # 状态文件名称
+# Path Configuration
+work_dir: "./novel_workspace" # Root directory for storing created content
+knowledge_dir: "./novel_knowledge" # Knowledge base storage directory
+log_dir: "./logs" # Log storage directory
+state_file: "./novel_workspace/novel_state.json" # State file name
 
-# 生成配置
-chapter_split_size: 1000 # 单个场景块目标字数（汉字）
-min_chapter_words: 8000 # 单章最小字数
-max_retry_count: 3 # token超限失败重试次数
+# Generation Configuration
+chapter_split_size: 1000 # Target word count (Chinese characters) per scene block
+min_chapter_words: 8000 # Minimum word count per chapter
+max_retry_count: 3 # Number of retries after token overflow failure
