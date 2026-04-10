@@ -9,7 +9,7 @@ class StateManager:
         self.state = self._load_state()
     
     def _load_state(self) -> Dict[str, Any]:
-        """加载状态文件，不存在则初始化"""
+        """Load state file, initialize if not exists"""
         if os.path.exists(self.state_path):
             with open(self.state_path, 'r', encoding='utf-8') as f:
                 return json.load(f)
@@ -26,13 +26,13 @@ class StateManager:
         }
     
     def save_state(self) -> None:
-        """保存状态到文件"""
+        """Save state to file"""
         os.makedirs(os.path.dirname(self.state_path), exist_ok=True)
         with open(self.state_path, 'w', encoding='utf-8') as f:
             json.dump(self.state, f, ensure_ascii=False, indent=2)
     
     def update_progress(self, completed_chapters: int = None, completed_chunks: int = None) -> None:
-        """更新进度"""
+        """Update progress"""
         if completed_chapters is not None:
             self.state["progress"]["completed_chapters"] = completed_chapters
         if completed_chunks is not None:
@@ -40,12 +40,12 @@ class StateManager:
         self.save_state()
     
     def set_next_action(self, action: str) -> None:
-        """设置下一步动作"""
+        """Set the next action"""
         self.state["next_action"] = action
         self.save_state()
     
     def add_chunk_path(self, chapter_id: int, chunk_id: int, path: str) -> None:
-        """添加场景块文件路径"""
+        """Add scene block file path"""
         chapter_key = f"chapter_{chapter_id}"
         if chapter_key not in self.state["chunk_paths"]:
             self.state["chunk_paths"][chapter_key] = {}
@@ -53,9 +53,9 @@ class StateManager:
         self.save_state()
     
     def get_recent_chunks(self, count: int = 2) -> list:
-        """获取最近生成的count个场景块内容"""
+        """Retrieve the content of the most recently generated 'count' scene blocks"""
         chunks = []
-        # 倒序遍历已生成的块
+        # Traverse generated blocks in reverse order
         for chapter_id in sorted(range(self.state["progress"]["completed_chapters"] + 1), reverse=True):
             chapter_key = f"chapter_{chapter_id}"
             if chapter_key not in self.state["chunk_paths"]:
