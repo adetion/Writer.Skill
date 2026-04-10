@@ -5,6 +5,8 @@ description: Zero-token-overflow 400-error guaranteed long-form text/novel creat
 ---
 ```
 
+写手Skill（长篇小说创作助手，自带知识库学习）。支持分块生成、知识库安全检索、状态机持久化、全自动创作流程，支持自动解析Word(docx)/Excel(xlsx)/PDF/TXT/MD格式文件转换为【结构化YAML知识库】。使用场景：当用户需要创作长篇小说、生成大量文本内容、管理连载写作进度、避免大文本对话导致token超限错误、需要导入多格式文件转换为YAML知识库时激活。
+
 #  Please respect the author's hard work. Feel free to tip~~~ For the Chinese version, please visit https://gitee.com/adetion/writer-skill
 
 
