@@ -1,0 +1,1 @@
+This is the storage directory for the Writer Skill's self-managed knowledge base.
